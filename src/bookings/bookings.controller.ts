@@ -30,13 +30,15 @@ export class BookingsController {
   @Get('availability')
   async getAvailability(
     @Query('specialistId') specialistId: string,
+    @Query('branchId') branchId: string,
     @Query('date') date: string,
   ): Promise<{ bookedSlots: string[] }> {
-    if (!specialistId || !date) {
+    if (!specialistId || !date || !branchId) {
       return { bookedSlots: [] };
     }
     const bookedSlots = await this.bookingsService.getBookedSlots(
       specialistId,
+      branchId,
       date,
     );
     return { bookedSlots };

@@ -10,6 +10,6 @@ import { Branch, BranchSchema } from './schemas/branch.schema';
   ],
   providers: [BranchesService],
   controllers: [BranchesController],
-  exports: [MongooseModule],
+  exports: [MongooseModule, BranchesService],
 })
 export class BranchesModule {}

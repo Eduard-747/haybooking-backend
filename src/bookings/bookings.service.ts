@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { Booking, BookingDocument } from './schemas/booking.schema';
 import { PartnersService } from '../partners/partners.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { BranchesService } from '../branches/branches.service';
 
 @Injectable()
 export class BookingsService {
@@ -11,6 +12,7 @@ export class BookingsService {
     @InjectModel(Booking.name) private bookingModel: Model<BookingDocument>,
     private partnersService: PartnersService,
     private notificationsService: NotificationsService,
+    private branchesService: BranchesService,
   ) {}
 
   async create(createBookingDto: any): Promise<Booking> {
@@ -30,6 +32,31 @@ export class BookingsService {
       const partner = await this.partnersService.findOne(data.partnerId);
       if (partner?.autoAcceptBookings) {
         data.status = 'confirmed';
+      }
+    }
+
+    // Branch break overlap validation
+    if (data.branchId && data.startTime && data.endTime) {
+      const branch = await this.branchesService.findOne(data.branchId);
+      if (branch && branch.breaks && branch.breaks.length > 0) {
+        const bookingStart = new Date(data.startTime);
+        const bookingEnd = new Date(data.endTime);
+        const dayOfWeek = bookingStart.getDay();
+        const dailyBreaks = branch.breaks.filter((b: any) => b.weekday === dayOfWeek);
+
+        for (const b of dailyBreaks) {
+          const breakStart = new Date(bookingStart);
+          const [sh, sm] = b.startTime.split(':');
+          breakStart.setHours(parseInt(sh, 10), parseInt(sm, 10), 0, 0);
+
+          const breakEnd = new Date(bookingStart);
+          const [eh, em] = b.endTime.split(':');
+          breakEnd.setHours(parseInt(eh, 10), parseInt(em, 10), 0, 0);
+
+          if (bookingStart < breakEnd && bookingEnd > breakStart) {
+            throw new BadRequestException('The selected time overlaps with a branch break period.');
+          }
+        }
       }
     }
 
@@ -197,7 +224,7 @@ export class BookingsService {
     return { total, pending, confirmed, cancelled, declined };
   }
 
-  async getBookedSlots(specialistId: string, date: string): Promise<string[]> {
+  async getBookedSlots(specialistId: string, branchId: string, date: string): Promise<string[]> {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -218,11 +245,41 @@ export class BookingsService {
     // Convert startTime to HH:mm string in local time (or UTC based on how it's stored)
     // Assuming the frontend sends time as HH:mm and it gets converted to Date using local TZ
     // For simplicity, we just extract the hours and minutes from the ISO string's Date object
-    return bookings.map((b) => {
+    const bookedSlots = bookings.map((b) => {
       const d = new Date(b.startTime);
       const hh = d.getHours().toString().padStart(2, '0');
       const mm = d.getMinutes().toString().padStart(2, '0');
       return `${hh}:${mm}`;
     });
+
+    // Add branch breaks to booked slots
+    if (branchId) {
+      const branch = await this.branchesService.findOne(branchId);
+      if (branch && branch.breaks && branch.breaks.length > 0) {
+        const dayOfWeek = startOfDay.getDay();
+        const dailyBreaks = branch.breaks.filter((b: any) => b.weekday === dayOfWeek);
+
+        // We check every hour from 00:00 to 23:00 to see if it overlaps with a break
+        for (const b of dailyBreaks) {
+          const [sh, sm] = b.startTime.split(':').map(Number);
+          const [eh, em] = b.endTime.split(':').map(Number);
+          
+          const breakStartMins = sh * 60 + sm;
+          const breakEndMins = eh * 60 + em;
+
+          for (let hour = 0; hour < 24; hour++) {
+            const slotStartMins = hour * 60;
+            const slotEndMins = hour * 60 + 60; // Assuming 1-hour slots for the calendar representation
+
+            // If the slot overlaps with the break, mark it as booked
+            if (slotStartMins < breakEndMins && slotEndMins > breakStartMins) {
+              bookedSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+            }
+          }
+        }
+      }
+    }
+
+    return Array.from(new Set(bookedSlots));
   }
 }
