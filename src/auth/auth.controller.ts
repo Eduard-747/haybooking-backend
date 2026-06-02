@@ -12,6 +12,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { AuthGuard } from '@nestjs/passport';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -44,6 +45,18 @@ export class AuthController {
   @Post('verify-sms')
   async verifySms(@Body() verifyDto: any) {
     return this.authService.verifySms(verifyDto);
+  }
+
+  @UseGuards(ThrottlerGuard)
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: { phoneNumber: string }) {
+    return this.authService.forgotPassword(body.phoneNumber);
+  }
+
+  @UseGuards(ThrottlerGuard)
+  @Post('reset-password')
+  async resetPassword(@Body() body: any) {
+    return this.authService.resetPassword(body.phoneNumber, body.code, body.password);
   }
 
   @Get('google')

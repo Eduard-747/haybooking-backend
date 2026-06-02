@@ -66,8 +66,10 @@ export class CreateBranchDto {
   @Type(() => AddressDto)
   address: AddressDto;
 
-  @IsString()
-  phoneNumber: string;
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  phoneNumbers?: string[];
 
   @IsOptional()
   @IsArray()

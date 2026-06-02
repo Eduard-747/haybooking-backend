@@ -44,6 +44,12 @@ export class User {
   @Prop({ required: false })
   image?: string;
 
+  @Prop({ required: false })
+  resetToken?: string;
+
+  @Prop({ required: false })
+  resetTokenExpiry?: Date;
+
   @Prop({ type: [String], default: [] })
   favorites: string[];
 

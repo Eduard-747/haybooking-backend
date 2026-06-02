@@ -11,6 +11,7 @@ import { SpecialistsModule } from './specialists/specialists.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { AuthModule } from './auth/auth.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -32,6 +33,10 @@ import { NotificationsModule } from './notifications/notifications.module';
     BookingsModule,
     AuthModule,
     NotificationsModule,
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 10,
+    }]),
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,9 +2,11 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../users/schemas/user.schema';
@@ -163,5 +165,75 @@ export class AuthService {
       throw new UnauthorizedException('Invalid verification code');
     }
     return { success: true, message: 'SMS verified' };
+  }
+
+  async forgotPassword(phoneNumber: string) {
+    if (!phoneNumber) {
+      throw new BadRequestException('Phone number is required');
+    }
+
+    const user = await this.userModel.findOne({ phoneNumber });
+    // "Do not reveal whether a phone number exists in the system."
+    if (!user) {
+      return { success: true, message: 'If that phone number exists, a password reset code has been sent via SMS.' };
+    }
+
+    // Generate a 6-digit numeric code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetTokenHash = crypto.createHash('sha256').update(resetCode).digest('hex');
+
+    user.resetToken = resetTokenHash;
+    user.resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiry
+    await user.save();
+
+    // Simulated SMS
+    console.log(`[SIMULATED SMS] Password reset requested for ${phoneNumber}`);
+    console.log(`[SIMULATED SMS] Your password reset code is: ${resetCode}`);
+    
+    return { success: true, message: 'If that phone number exists, a password reset code has been sent via SMS.' };
+  }
+
+  async resetPassword(phoneNumber: string, code: string, newPassword: string) {
+    if (!phoneNumber || !code || !newPassword) {
+      throw new BadRequestException('Phone number, code, and new password are required');
+    }
+
+    const user = await this.userModel.findOne({ phoneNumber });
+    if (!user) {
+      throw new BadRequestException('Invalid or expired password reset code');
+    }
+
+    if (!user.resetToken || !user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
+      throw new BadRequestException('Invalid or expired password reset code');
+    }
+
+    const resetTokenHash = crypto.createHash('sha256').update(code).digest('hex');
+    if (user.resetToken !== resetTokenHash) {
+      throw new BadRequestException('Invalid or expired password reset code');
+    }
+
+    // Prevent reuse of current password
+    if (user.passwordHash) {
+      const isSamePassword = await bcrypt.compare(newPassword, user.passwordHash);
+      if (isSamePassword) {
+        throw new ConflictException('New password cannot be the same as your current password');
+      }
+    }
+
+    // Enforce strong password requirements
+    // At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      throw new BadRequestException('Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters (@$!%*?&)');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(newPassword, salt);
+    // Invalidate reset token
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
+    await user.save();
+
+    return { success: true, message: 'Password has been successfully reset. You can now log in.' };
   }
 }
