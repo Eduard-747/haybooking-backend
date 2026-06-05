@@ -35,6 +35,14 @@ export class BookingsService {
       }
     }
 
+    // Past time slot validation
+    if (data.startTime) {
+      const bookingStart = new Date(data.startTime);
+      if (bookingStart < new Date()) {
+        throw new BadRequestException('Cannot book a past time slot.');
+      }
+    }
+
     // Branch break overlap validation
     if (data.branchId && data.startTime && data.endTime) {
       const branch = await this.branchesService.findOne(data.branchId);

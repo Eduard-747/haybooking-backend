@@ -73,7 +73,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'client', 'partner')
+  @Roles('super_admin', 'admin', 'client', 'partner')
   @Get('profile')
   async getProfile(@Req() req: AuthRequest) {
     // Fetch full user from DB so we return name, surname, email

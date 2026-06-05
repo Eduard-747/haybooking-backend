@@ -98,7 +98,7 @@ export class PartnersService implements OnModuleInit {
   }
 
   async findOne(id: string): Promise<Partner | null> {
-    return this.partnerModel.findById(id).populate('userId').exec();
+    return this.partnerModel.findOne({ _id: id, status: 'active' }).populate('userId').exec();
   }
 
   async findByUserId(userId: string): Promise<Partner | null> {
@@ -107,7 +107,7 @@ export class PartnersService implements OnModuleInit {
 
   async findBySlug(slug: string): Promise<Partner | null> {
     return this.partnerModel
-      .findOne({ slug } as any)
+      .findOne({ slug, status: 'active' } as any)
       .populate('userId')
       .exec();
   }
