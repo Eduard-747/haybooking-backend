@@ -56,7 +56,14 @@ export class Branch {
   @Prop({ type: Address, required: true })
   address: Address;
 
-  @Prop({ type: [String], default: [], validate: [(val: string[]) => val.length <= 4, '{PATH} exceeds the limit of 4'] })
+  @Prop({
+    type: [String],
+    default: [],
+    validate: [
+      (val: string[]) => val.length <= 4,
+      '{PATH} exceeds the limit of 4',
+    ],
+  })
   phoneNumbers: string[];
 
   @Prop({ type: [WorkingHour], default: [] })

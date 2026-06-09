@@ -47,7 +47,14 @@ export class Booking {
 
   @Prop({
     required: true,
-    enum: ['pending', 'confirmed', 'declined', 'cancelled', 'completed', 'no-show'],
+    enum: [
+      'pending',
+      'confirmed',
+      'declined',
+      'cancelled',
+      'completed',
+      'no-show',
+    ],
     default: 'pending',
   })
   status: string;

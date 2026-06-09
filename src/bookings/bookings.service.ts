@@ -50,7 +50,9 @@ export class BookingsService {
         const bookingStart = new Date(data.startTime);
         const bookingEnd = new Date(data.endTime);
         const dayOfWeek = bookingStart.getDay();
-        const dailyBreaks = branch.breaks.filter((b: any) => b.weekday === dayOfWeek);
+        const dailyBreaks = branch.breaks.filter(
+          (b: any) => b.weekday === dayOfWeek,
+        );
 
         for (const b of dailyBreaks) {
           const breakStart = new Date(bookingStart);
@@ -62,7 +64,9 @@ export class BookingsService {
           breakEnd.setHours(parseInt(eh, 10), parseInt(em, 10), 0, 0);
 
           if (bookingStart < breakEnd && bookingEnd > breakStart) {
-            throw new BadRequestException('The selected time overlaps with a branch break period.');
+            throw new BadRequestException(
+              'The selected time overlaps with a branch break period.',
+            );
           }
         }
       }
@@ -75,12 +79,14 @@ export class BookingsService {
         status: { $in: ['pending', 'confirmed'] },
         $and: [
           { startTime: { $lt: data.endTime } },
-          { endTime: { $gt: data.startTime } }
-        ]
+          { endTime: { $gt: data.startTime } },
+        ],
       });
 
       if (overlapping) {
-        throw new BadRequestException('The selected time slot is already booked for this specialist.');
+        throw new BadRequestException(
+          'The selected time slot is already booked for this specialist.',
+        );
       }
     }
 
@@ -94,9 +100,11 @@ export class BookingsService {
         data.partnerId,
         'New Booking Received',
         `${guestName} has requested a new appointment.`,
-        'booking_created'
+        'booking_created',
       );
-      console.log(`[SIMULATED SMS to super admin]: New booking received from ${guestName}.`);
+      console.log(
+        `[SIMULATED SMS to super admin]: New booking received from ${guestName}.`,
+      );
     }
 
     return savedBooking;
@@ -171,16 +179,15 @@ export class BookingsService {
       };
       if (branchId) autocompleteQuery.branchId = branchId;
 
-      await this.bookingModel.updateMany(
-        autocompleteQuery,
-        { status: 'completed' },
-      );
+      await this.bookingModel.updateMany(autocompleteQuery, {
+        status: 'completed',
+      });
     }
 
     const query: any = { partnerId };
     if (branchId) query.branchId = branchId;
 
-    console.log("findByPartner query:", query);
+    console.log('findByPartner query:', query);
 
     return this.bookingModel
       .find(query)
@@ -200,14 +207,17 @@ export class BookingsService {
       .exec();
 
     if (updated && status === 'cancelled') {
-      const clientName = updated.guestName || (updated.userId as any)?.name || 'A client';
+      const clientName =
+        updated.guestName || (updated.userId as any)?.name || 'A client';
       await this.notificationsService.create(
         updated.partnerId as any,
         'Booking Cancelled',
         `${clientName} has cancelled their appointment.`,
-        'booking_cancelled'
+        'booking_cancelled',
       );
-      console.log(`[SIMULATED SMS to super admin]: Booking cancelled by ${clientName}.`);
+      console.log(
+        `[SIMULATED SMS to super admin]: Booking cancelled by ${clientName}.`,
+      );
     }
 
     return updated;
@@ -217,7 +227,7 @@ export class BookingsService {
     const query: any = { partnerId };
     if (branchId) query.branchId = branchId;
 
-    console.log("getAnalytics query:", query);
+    console.log('getAnalytics query:', query);
 
     const allBookings = await this.bookingModel.find(query).exec();
     const total = allBookings.length;
@@ -232,7 +242,11 @@ export class BookingsService {
     return { total, pending, confirmed, cancelled, declined };
   }
 
-  async getBookedSlots(specialistId: string, branchId: string, date: string): Promise<string[]> {
+  async getBookedSlots(
+    specialistId: string,
+    branchId: string,
+    date: string,
+  ): Promise<string[]> {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -265,13 +279,15 @@ export class BookingsService {
       const branch = await this.branchesService.findOne(branchId);
       if (branch && branch.breaks && branch.breaks.length > 0) {
         const dayOfWeek = startOfDay.getDay();
-        const dailyBreaks = branch.breaks.filter((b: any) => b.weekday === dayOfWeek);
+        const dailyBreaks = branch.breaks.filter(
+          (b: any) => b.weekday === dayOfWeek,
+        );
 
         // We check every hour from 00:00 to 23:00 to see if it overlaps with a break
         for (const b of dailyBreaks) {
           const [sh, sm] = b.startTime.split(':').map(Number);
           const [eh, em] = b.endTime.split(':').map(Number);
-          
+
           const breakStartMins = sh * 60 + sm;
           const breakEndMins = eh * 60 + em;
 

@@ -8,9 +8,7 @@ import { User, UserDocument } from './schemas/user.schema';
 export class UsersService implements OnModuleInit {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async onModuleInit() {
     await this.seedSuperAdmin();
@@ -18,7 +16,9 @@ export class UsersService implements OnModuleInit {
 
   private async seedSuperAdmin() {
     const superAdminPhone = 'haybooking_super_admin';
-    const existingAdmin = await this.userModel.findOne({ phoneNumber: superAdminPhone });
+    const existingAdmin = await this.userModel.findOne({
+      phoneNumber: superAdminPhone,
+    });
 
     if (!existingAdmin) {
       this.logger.log('Seeding super admin user...');

@@ -20,7 +20,9 @@ export class ServicesService {
   }
 
   async findByPartner(partnerId: string): Promise<Service[]> {
-    return this.serviceModel.find({ partnerId } as any).exec();
+    return this.serviceModel
+      .find({ partnerId } as any)
+      .exec();
   }
 
   async findOne(id: string): Promise<Service | null> {

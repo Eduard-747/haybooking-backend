@@ -24,10 +24,10 @@ export class Partner {
   @Prop({ required: false, unique: true, sparse: true })
   slug: string;
 
-  @Prop({ 
-    required: true, 
-    enum: ['pending', 'active', 'rejected'], 
-    default: 'pending' 
+  @Prop({
+    required: true,
+    enum: ['pending', 'active', 'rejected'],
+    default: 'pending',
   })
   status: string;
 

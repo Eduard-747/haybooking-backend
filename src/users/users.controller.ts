@@ -38,7 +38,10 @@ export class UsersController {
   // PUT /users/me — update current user profile
   @UseGuards(JwtAuthGuard)
   @Put('me')
-  async updateMe(@Req() req: AuthRequest, @Body() updateData: any) {
+  async updateMe(
+    @Req() req: AuthRequest,
+    @Body() updateData: Record<string, any>,
+  ) {
     // Don't allow role, password, or phone changes via this generic endpoint
     const {
       role: _r,
@@ -100,7 +103,10 @@ export class UsersController {
   // PUT /users/me/password — update user password
   @UseGuards(JwtAuthGuard)
   @Put('me/password')
-  async updatePassword(@Req() req: AuthRequest, @Body() body: any) {
+  async updatePassword(
+    @Req() req: AuthRequest,
+    @Body() body: Record<string, string>,
+  ) {
     const { currentPassword, newPassword } = body;
     if (!currentPassword || !newPassword) {
       throw new BadRequestException('Current and new passwords are required');

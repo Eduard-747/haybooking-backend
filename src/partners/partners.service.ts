@@ -15,94 +15,103 @@ export class PartnersService implements OnModuleInit {
     this.logger.log('Migrating existing partners to active status...');
     const result = await this.partnerModel.updateMany(
       { status: { $exists: false } },
-      { $set: { status: 'active' } }
+      { $set: { status: 'active' } },
     );
     this.logger.log(`Migrated ${result.modifiedCount} partners.`);
   }
 
   async findAll(): Promise<any[]> {
-    return this.partnerModel.aggregate([
-      {
-        $match: { status: 'active' }
-      },
-      {
-        $lookup: {
-          from: 'bookings',
-          localField: '_id',
-          foreignField: 'partnerId',
-          as: 'bookings',
+    return this.partnerModel
+      .aggregate([
+        {
+          $match: { status: 'active' },
         },
-      },
-      {
-        $addFields: {
-          bookingCount: { $size: '$bookings' },
+        {
+          $lookup: {
+            from: 'bookings',
+            localField: '_id',
+            foreignField: 'partnerId',
+            as: 'bookings',
+          },
         },
-      },
-      {
-        $project: {
-          bookings: 0, // exclude the actual booking objects to save bandwidth
+        {
+          $addFields: {
+            bookingCount: { $size: '$bookings' },
+          },
         },
-      },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          as: 'userId'
-        }
-      },
-      {
-        $unwind: {
-          path: '$userId',
-          preserveNullAndEmptyArrays: true
-        }
-      }
-    ]).exec();
+        {
+          $project: {
+            bookings: 0, // exclude the actual booking objects to save bandwidth
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'userId',
+          },
+        },
+        {
+          $unwind: {
+            path: '$userId',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ])
+      .exec();
   }
 
   async findAllAdmin(): Promise<any[]> {
-    return this.partnerModel.aggregate([
-      {
-        $lookup: {
-          from: 'bookings',
-          localField: '_id',
-          foreignField: 'partnerId',
-          as: 'bookings',
+    return this.partnerModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'bookings',
+            localField: '_id',
+            foreignField: 'partnerId',
+            as: 'bookings',
+          },
         },
-      },
-      {
-        $addFields: {
-          bookingCount: { $size: '$bookings' },
+        {
+          $addFields: {
+            bookingCount: { $size: '$bookings' },
+          },
         },
-      },
-      {
-        $project: {
-          bookings: 0,
+        {
+          $project: {
+            bookings: 0,
+          },
         },
-      },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          as: 'userId'
-        }
-      },
-      {
-        $unwind: {
-          path: '$userId',
-          preserveNullAndEmptyArrays: true
-        }
-      }
-    ]).exec();
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'userId',
+          },
+        },
+        {
+          $unwind: {
+            path: '$userId',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ])
+      .exec();
   }
 
   async findOne(id: string): Promise<Partner | null> {
-    return this.partnerModel.findOne({ _id: id, status: 'active' }).populate('userId').exec();
+    return this.partnerModel
+      .findOne({ _id: id, status: 'active' } as any)
+      .populate('userId')
+      .exec();
   }
 
   async findByUserId(userId: string): Promise<Partner | null> {
-    return this.partnerModel.findOne({ userId } as any).exec();
+    return this.partnerModel
+      .findOne({ userId } as any)
+      .exec();
   }
 
   async findBySlug(slug: string): Promise<Partner | null> {
@@ -113,7 +122,11 @@ export class PartnersService implements OnModuleInit {
   }
 
   async update(id: string, data: any): Promise<Partner | null> {
-    return this.partnerModel.findByIdAndUpdate(id, data, { new: true }).exec();
+    return this.partnerModel
+      .findByIdAndUpdate(id, data as any, {
+        new: true,
+      })
+      .exec();
   }
 
   async generateSlug(businessName: string): Promise<string> {

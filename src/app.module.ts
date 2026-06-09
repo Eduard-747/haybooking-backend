@@ -33,10 +33,12 @@ import { ThrottlerModule } from '@nestjs/throttler';
     BookingsModule,
     AuthModule,
     NotificationsModule,
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 10,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
   ],
   controllers: [AppController],
   providers: [AppService],

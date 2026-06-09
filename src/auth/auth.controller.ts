@@ -56,7 +56,11 @@ export class AuthController {
   @UseGuards(ThrottlerGuard)
   @Post('reset-password')
   async resetPassword(@Body() body: any) {
-    return this.authService.resetPassword(body.phoneNumber, body.code, body.password);
+    return this.authService.resetPassword(
+      body.phoneNumber,
+      body.code,
+      body.password,
+    );
   }
 
   @Get('google')

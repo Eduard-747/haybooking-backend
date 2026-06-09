@@ -1,4 +1,15 @@
-import { Controller, Get, Patch, Post, Param, Query, UseGuards, Req, Body, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Param,
+  Query,
+  UseGuards,
+  Req,
+  Body,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Notification } from './schemas/notification.schema';
@@ -10,12 +21,16 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get()
-  async getNotifications(@Query('partnerId') partnerId: string): Promise<Notification[]> {
+  async getNotifications(
+    @Query('partnerId') partnerId: string,
+  ): Promise<Notification[]> {
     return this.notificationsService.findByPartner(partnerId);
   }
 
   @Patch('read-all')
-  async markAllAsRead(@Query('partnerId') partnerId: string): Promise<{ success: boolean }> {
+  async markAllAsRead(
+    @Query('partnerId') partnerId: string,
+  ): Promise<{ success: boolean }> {
     await this.notificationsService.markAllAsRead(partnerId);
     return { success: true };
   }
