@@ -148,6 +148,14 @@ export class BookingsService {
               { _id: booking._id },
               { status: 'completed' },
             );
+            if (booking.userId) {
+              await this.notificationsService.createForUser(
+                booking.userId.toString(),
+                'Booking Completed',
+                'Your booking has been marked as completed. Thank you!',
+                'booking_completed',
+              );
+            }
           }
         }
       }
@@ -179,9 +187,22 @@ export class BookingsService {
       };
       if (branchId) autocompleteQuery.branchId = branchId;
 
+      const bookingsToComplete = await this.bookingModel.find(autocompleteQuery);
+
       await this.bookingModel.updateMany(autocompleteQuery, {
         status: 'completed',
       });
+
+      for (const b of bookingsToComplete) {
+        if (b.userId) {
+          await this.notificationsService.createForUser(
+            b.userId.toString(),
+            'Booking Completed',
+            'Your booking has been marked as completed. Thank you!',
+            'booking_completed',
+          );
+        }
+      }
     }
 
     const query: any = { partnerId };
@@ -206,18 +227,56 @@ export class BookingsService {
       .populate('userId', 'name surname')
       .exec();
 
-    if (updated && status === 'cancelled') {
-      const clientName =
-        updated.guestName || (updated.userId as any)?.name || 'A client';
-      await this.notificationsService.create(
-        updated.partnerId as any,
-        'Booking Cancelled',
-        `${clientName} has cancelled their appointment.`,
-        'booking_cancelled',
-      );
-      console.log(
-        `[SIMULATED SMS to super admin]: Booking cancelled by ${clientName}.`,
-      );
+    if (updated) {
+      if (status === 'cancelled') {
+        const clientName =
+          updated.guestName || (updated.userId as any)?.name || 'A client';
+        await this.notificationsService.create(
+          updated.partnerId as any,
+          'Booking Cancelled',
+          `${clientName} has cancelled their appointment.`,
+          'booking_cancelled',
+        );
+        console.log(
+          `[SIMULATED SMS to super admin]: Booking cancelled by ${clientName}.`,
+        );
+
+        if (updated.userId) {
+          await this.notificationsService.createForUser(
+            (updated.userId as any)._id.toString(),
+            'Booking Cancelled',
+            'Your booking has been cancelled.',
+            'booking_cancelled',
+          );
+        }
+      } else if (status === 'confirmed') {
+        if (updated.userId) {
+          await this.notificationsService.createForUser(
+            (updated.userId as any)._id.toString(),
+            'Booking Accepted',
+            'Your booking has been accepted by the business.',
+            'booking_accepted',
+          );
+        }
+      } else if (status === 'completed') {
+        if (updated.userId) {
+          await this.notificationsService.createForUser(
+            (updated.userId as any)._id.toString(),
+            'Booking Completed',
+            'Your booking has been marked as completed. Thank you!',
+            'booking_completed',
+          );
+        }
+      } else if (status === 'declined') {
+        if (updated.userId) {
+          await this.notificationsService.createForUser(
+            (updated.userId as any)._id.toString(),
+            'Booking Declined',
+            'Your booking has been declined by the business.',
+            'booking_declined',
+          );
+        }
+      }
     }
 
     return updated;

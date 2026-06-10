@@ -54,4 +54,46 @@ export class NotificationsService {
       .updateMany({ partnerId, read: false } as any, { read: true })
       .exec();
   }
+
+  async createForUser(
+    userId: string,
+    title: string,
+    message: string,
+    type: string,
+  ): Promise<Notification> {
+    const newNotification = new this.notificationModel({
+      userId,
+      title,
+      message,
+      type,
+    });
+    return newNotification.save();
+  }
+
+  async findByUser(userId: string): Promise<Notification[]> {
+    return this.notificationModel
+      .find({ userId } as any)
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .exec();
+  }
+
+  async markAsReadForUser(
+    id: string,
+    userId: string,
+  ): Promise<Notification | null> {
+    return this.notificationModel
+      .findOneAndUpdate(
+        { _id: id, userId } as any,
+        { read: true },
+        { new: true },
+      )
+      .exec();
+  }
+
+  async markAllAsReadForUser(userId: string): Promise<void> {
+    await this.notificationModel
+      .updateMany({ userId, read: false } as any, { read: true })
+      .exec();
+  }
 }

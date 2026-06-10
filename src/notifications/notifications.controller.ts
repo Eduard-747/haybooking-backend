@@ -43,6 +43,29 @@ export class NotificationsController {
     return this.notificationsService.markAsRead(id, partnerId);
   }
 
+  @Get('user')
+  async getUserNotifications(
+    @Req() req: AuthRequest,
+  ): Promise<Notification[]> {
+    return this.notificationsService.findByUser(req.user.userId);
+  }
+
+  @Patch('user/read-all')
+  async markAllUserAsRead(
+    @Req() req: AuthRequest,
+  ): Promise<{ success: boolean }> {
+    await this.notificationsService.markAllAsReadForUser(req.user.userId);
+    return { success: true };
+  }
+
+  @Patch('user/:id/read')
+  async markUserAsRead(
+    @Param('id') id: string,
+    @Req() req: AuthRequest,
+  ): Promise<Notification | null> {
+    return this.notificationsService.markAsReadForUser(id, req.user.userId);
+  }
+
   @Post('admin/send')
   async sendAdminMessage(
     @Req() req: AuthRequest,
