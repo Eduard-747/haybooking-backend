@@ -9,6 +9,14 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+export class GalleryImageDto {
+  @IsString()
+  url: string;
+
+  @IsString()
+  category: string;
+}
+
 export class AddressDto {
   @IsString()
   line1: string;
@@ -87,4 +95,10 @@ export class CreateBranchDto {
   @ValidateNested()
   @Type(() => LocationDto)
   location?: LocationDto;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => GalleryImageDto)
+  gallery?: GalleryImageDto[];
 }

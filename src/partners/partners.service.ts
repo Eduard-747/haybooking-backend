@@ -14,7 +14,7 @@ export class PartnersService implements OnModuleInit {
   async onModuleInit() {
     this.logger.log('Migrating existing partners to active status...');
     const result = await this.partnerModel.updateMany(
-      { status: { $exists: false } },
+      { $or: [{ status: { $exists: false } }, { status: 'pending' }] },
       { $set: { status: 'active' } }
     );
     this.logger.log(`Migrated ${result.modifiedCount} partners.`);
