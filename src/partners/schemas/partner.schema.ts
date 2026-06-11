@@ -27,7 +27,7 @@ export class Partner {
   @Prop({
     required: true,
     enum: ['pending', 'active', 'rejected'],
-    default: 'pending',
+    default: 'active',
   })
   status: string;
 

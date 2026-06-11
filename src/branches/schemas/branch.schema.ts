@@ -4,6 +4,14 @@ import { Partner } from '../../partners/schemas/partner.schema';
 
 export type BranchDocument = Branch & Document;
 
+export class GalleryImage {
+  @Prop({ required: true })
+  url: string;
+
+  @Prop({ required: true })
+  category: string; // e.g. 'interior', 'exterior', 'food', 'events'
+}
+
 export class Address {
   @Prop()
   line1: string;
@@ -74,6 +82,9 @@ export class Branch {
 
   @Prop({ type: Location })
   location: Location;
+
+  @Prop({ type: [GalleryImage], default: [] })
+  gallery: GalleryImage[];
 }
 
 export const BranchSchema = SchemaFactory.createForClass(Branch);
