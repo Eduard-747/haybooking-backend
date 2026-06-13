@@ -45,6 +45,32 @@ export class Area {
   color?: string;
 }
 
+export class FloorElement {
+  @Prop({ required: true })
+  id: string;
+
+  @Prop({ required: true })
+  type: string;
+
+  @Prop({ required: true })
+  x: number;
+
+  @Prop({ required: true })
+  y: number;
+
+  @Prop({ required: false })
+  width?: number;
+
+  @Prop({ required: false })
+  height?: number;
+
+  @Prop({ required: false })
+  rotation?: number;
+
+  @Prop({ required: false })
+  color?: string;
+}
+
 export class Dimensions {
   @Prop({ required: true })
   width: number;
@@ -72,6 +98,9 @@ export class Floor {
 
   @Prop({ type: [Area], default: [] })
   areas: Area[];
+
+  @Prop({ type: [FloorElement], default: [] })
+  elements: FloorElement[];
 
   @Prop({ required: true, default: true })
   isActive: boolean;

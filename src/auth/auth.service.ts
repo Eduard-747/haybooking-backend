@@ -25,6 +25,7 @@ export class AuthService {
   async signup(signupDto: any) {
     const {
       phoneNumber,
+      email,
       password,
       name,
       surname,
@@ -32,17 +33,27 @@ export class AuthService {
       businessName,
       businessType,
     } = signupDto;
+
+    if (!phoneNumber && !email) {
+      throw new BadRequestException('Either phone number or email is required');
+    }
+
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Check for duplicate phone number
-    const existingUser = await this.userModel.findOne({ phoneNumber });
+    // Check for duplicate phone number or email
+    const query: any[] = [];
+    if (phoneNumber) query.push({ phoneNumber });
+    if (email) query.push({ email });
+
+    const existingUser = await this.userModel.findOne({ $or: query });
     if (existingUser) {
-      throw new ConflictException('Phone number already registered');
+      throw new ConflictException('A user with this phone number or email is already registered');
     }
 
     const newUser = new this.userModel({
-      phoneNumber,
+      ...(phoneNumber && { phoneNumber }),
+      ...(email && { email }),
       passwordHash,
       name,
       surname,
@@ -77,12 +88,20 @@ export class AuthService {
       };
     }
 
-    return this.login({ phoneNumber, password });
+    return this.login({ identifier: email || phoneNumber, password });
   }
 
   async login(loginDto: any) {
-    const { phoneNumber, password } = loginDto;
-    const user = await this.userModel.findOne({ phoneNumber });
+    const { identifier, password, phoneNumber } = loginDto;
+    const idToUse = identifier || phoneNumber;
+    
+    if (!idToUse) {
+      throw new BadRequestException('Identifier is required');
+    }
+
+    const user = await this.userModel.findOne({
+      $or: [{ phoneNumber: idToUse }, { email: idToUse }]
+    });
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -131,7 +150,6 @@ export class AuthService {
         await user.save();
       } else {
         user = new this.userModel({
-          phoneNumber: `google-${googleId}`,
           email: email,
           name: firstName,
           surname: lastName,

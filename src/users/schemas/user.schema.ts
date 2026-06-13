@@ -23,8 +23,8 @@ export class User {
   })
   role: string;
 
-  @Prop({ required: true, unique: true })
-  phoneNumber: string;
+  @Prop({ required: false, unique: true, sparse: true })
+  phoneNumber?: string;
 
   @Prop({ required: false })
   passwordHash: string;
