@@ -44,9 +44,7 @@ export class NotificationsController {
   }
 
   @Get('user')
-  async getUserNotifications(
-    @Req() req: AuthRequest,
-  ): Promise<Notification[]> {
+  async getUserNotifications(@Req() req: AuthRequest): Promise<Notification[]> {
     return this.notificationsService.findByUser(req.user.userId);
   }
 

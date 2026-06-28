@@ -48,8 +48,8 @@ export class RestaurantReservation {
 
   @Prop({
     required: true,
-    enum: ['confirmed', 'seated', 'completed', 'cancelled', 'no_show'],
-    default: 'confirmed',
+    enum: ['pending', 'confirmed', 'seated', 'completed', 'cancelled', 'no_show', 'rejected'],
+    default: 'pending',
   })
   status: string;
 
@@ -62,6 +62,11 @@ export class RestaurantReservation {
     default: 'online',
   })
   source: string;
+
+  @Prop({ required: false })
+  reassignReason?: string;
 }
 
-export const RestaurantReservationSchema = SchemaFactory.createForClass(RestaurantReservation);
+export const RestaurantReservationSchema = SchemaFactory.createForClass(
+  RestaurantReservation,
+);

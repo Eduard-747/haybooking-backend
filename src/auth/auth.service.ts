@@ -48,7 +48,9 @@ export class AuthService {
 
     const existingUser = await this.userModel.findOne({ $or: query });
     if (existingUser) {
-      throw new ConflictException('A user with this phone number or email is already registered');
+      throw new ConflictException(
+        'A user with this phone number or email is already registered',
+      );
     }
 
     const newUser = new this.userModel({
@@ -94,13 +96,13 @@ export class AuthService {
   async login(loginDto: any) {
     const { identifier, password, phoneNumber } = loginDto;
     const idToUse = identifier || phoneNumber;
-    
+
     if (!idToUse) {
       throw new BadRequestException('Identifier is required');
     }
 
     const user = await this.userModel.findOne({
-      $or: [{ phoneNumber: idToUse }, { email: idToUse }]
+      $or: [{ phoneNumber: idToUse }, { email: idToUse }],
     });
 
     if (!user) {

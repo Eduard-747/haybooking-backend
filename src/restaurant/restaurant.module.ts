@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Floor, FloorSchema } from './schemas/floor.schema';
 import { Table, TableSchema } from './schemas/table.schema';
-import { RestaurantReservation, RestaurantReservationSchema } from './schemas/reservation.schema';
+import {
+  RestaurantReservation,
+  RestaurantReservationSchema,
+} from './schemas/reservation.schema';
 import { MenuItem, MenuItemSchema } from './schemas/menu-item.schema';
 import { RestaurantFloorsService } from './restaurant-floors.service';
 import { RestaurantFloorsController } from './restaurant-floors.controller';
@@ -21,6 +25,7 @@ import { RestaurantMenuController } from './restaurant-menu.controller';
       { name: RestaurantReservation.name, schema: RestaurantReservationSchema },
       { name: MenuItem.name, schema: MenuItemSchema },
     ]),
+    NotificationsModule,
   ],
   controllers: [
     RestaurantFloorsController,

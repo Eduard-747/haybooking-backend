@@ -22,6 +22,17 @@ export class RestaurantMenuService {
     return this.menuItemModel.find({ branchId } as any).exec();
   }
 
+  async findAllForBranchAndPartner(partnerId: string, branchId: string): Promise<MenuItem[]> {
+    return this.menuItemModel.find({
+      partnerId,
+      $or: [
+        { branchId },
+        { branchId: { $exists: false } },
+        { branchId: null }
+      ]
+    } as any).exec();
+  }
+
   async findOne(id: string): Promise<MenuItem> {
     const item = await this.menuItemModel.findById(id).exec();
     if (!item) throw new NotFoundException('Menu item not found');
@@ -29,7 +40,9 @@ export class RestaurantMenuService {
   }
 
   async update(id: string, updateDto: any): Promise<MenuItem> {
-    const item = await this.menuItemModel.findByIdAndUpdate(id, updateDto, { new: true }).exec();
+    const item = await this.menuItemModel
+      .findByIdAndUpdate(id, updateDto, { new: true })
+      .exec();
     if (!item) throw new NotFoundException('Menu item not found');
     return item;
   }

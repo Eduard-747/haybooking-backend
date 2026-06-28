@@ -17,9 +17,10 @@ import { Req } from '@nestjs/common';
 
 @Controller('restaurant/reservations')
 export class RestaurantReservationsController {
-  constructor(private readonly reservationsService: RestaurantReservationsService) {}
+  constructor(
+    private readonly reservationsService: RestaurantReservationsService,
+  ) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createReservationDto: any) {
     return this.reservationsService.create(createReservationDto);
@@ -60,6 +61,16 @@ export class RestaurantReservationsController {
   @Patch(':id/status')
   updateStatus(@Param('id') id: string, @Body('status') status: string) {
     return this.reservationsService.updateStatus(id, status);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/reassign')
+  reassignTable(
+    @Param('id') id: string,
+    @Body('tableId') tableId: string,
+    @Body('reason') reason: string,
+  ) {
+    return this.reservationsService.reassignTable(id, tableId, reason);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { RestaurantMenuService } from './restaurant-menu.service';
 
 @Controller('restaurant/menu')
@@ -11,7 +21,13 @@ export class RestaurantMenuController {
   }
 
   @Get()
-  findAll(@Query('partnerId') partnerId?: string, @Query('branchId') branchId?: string) {
+  findAll(
+    @Query('partnerId') partnerId?: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    if (partnerId && branchId) {
+      return this.menuService.findAllForBranchAndPartner(partnerId, branchId);
+    }
     if (branchId) {
       return this.menuService.findAllByBranch(branchId);
     }

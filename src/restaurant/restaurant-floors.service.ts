@@ -15,7 +15,10 @@ export class RestaurantFloorsService {
   }
 
   async findAllByBranch(branchId: string): Promise<Floor[]> {
-    return this.floorModel.find({ branchId } as any).sort({ order: 1 }).exec();
+    return this.floorModel
+      .find({ branchId } as any)
+      .sort({ order: 1 })
+      .exec();
   }
 
   async findOne(id: string): Promise<Floor> {

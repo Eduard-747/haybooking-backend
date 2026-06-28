@@ -187,7 +187,8 @@ export class BookingsService {
       };
       if (branchId) autocompleteQuery.branchId = branchId;
 
-      const bookingsToComplete = await this.bookingModel.find(autocompleteQuery);
+      const bookingsToComplete =
+        await this.bookingModel.find(autocompleteQuery);
 
       await this.bookingModel.updateMany(autocompleteQuery, {
         status: 'completed',

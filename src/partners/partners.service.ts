@@ -15,7 +15,7 @@ export class PartnersService implements OnModuleInit {
     this.logger.log('Migrating existing partners to active status...');
     const result = await this.partnerModel.updateMany(
       { $or: [{ status: { $exists: false } }, { status: 'pending' }] },
-      { $set: { status: 'active' } }
+      { $set: { status: 'active' } },
     );
     this.logger.log(`Migrated ${result.modifiedCount} partners.`);
   }
@@ -109,9 +109,7 @@ export class PartnersService implements OnModuleInit {
   }
 
   async findByUserId(userId: string): Promise<Partner | null> {
-    return this.partnerModel
-      .findOne({ userId } as any)
-      .exec();
+    return this.partnerModel.findOne({ userId } as any).exec();
   }
 
   async findBySlug(slug: string): Promise<Partner | null> {
@@ -123,7 +121,7 @@ export class PartnersService implements OnModuleInit {
 
   async update(id: string, data: any): Promise<Partner | null> {
     return this.partnerModel
-      .findByIdAndUpdate(id, data as any, {
+      .findByIdAndUpdate(id, data, {
         new: true,
       })
       .exec();

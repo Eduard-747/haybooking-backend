@@ -7,7 +7,11 @@ export type NotificationDocument = Notification & Document;
 
 @Schema({ timestamps: true })
 export class Notification {
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Partner', required: false })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Partner',
+    required: false,
+  })
   partnerId: Partner;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: false })
@@ -27,7 +31,7 @@ export class Notification {
       'booking_accepted',
       'booking_completed',
       'booking_declined',
-      'info'
+      'info',
     ],
     default: 'info',
   })
