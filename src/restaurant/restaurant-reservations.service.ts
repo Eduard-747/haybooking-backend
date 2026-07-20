@@ -66,7 +66,7 @@ export class RestaurantReservationsService {
         data.partnerId,
         'New Booking Received',
         `A new reservation request has been submitted for ${data.date}.`,
-        'reservation',
+        'booking_created',
       );
     }
     
@@ -76,7 +76,7 @@ export class RestaurantReservationsService {
         data.userId,
         'Reservation Submitted',
         `Your reservation has been submitted to the restaurant and is pending confirmation.`,
-        'reservation',
+        'booking_created',
       );
     }
     
@@ -190,26 +190,31 @@ export class RestaurantReservationsService {
     if (updatedReservation.userId) {
       let title = 'Reservation Updated';
       let message = `Your reservation status is now ${status}.`;
+      let type = 'info';
       
       if (status === 'confirmed') {
         title = 'Booking Accepted';
         message = 'Your booking has been accepted by the business.';
+        type = 'booking_accepted';
       } else if (status === 'rejected') {
         title = 'Booking Declined';
         message = 'Your booking has been declined by the business.';
+        type = 'booking_declined';
       } else if (status === 'cancelled') {
         title = 'Booking Cancelled';
         message = 'Your booking has been cancelled.';
+        type = 'booking_cancelled';
       } else if (status === 'completed') {
         title = 'Booking Completed';
         message = 'Your booking has been marked as completed. Thank you!';
+        type = 'booking_completed';
       }
       
       await this.notificationsService.createForUser(
         updatedReservation.userId.toString(),
         title,
         message,
-        'reservation',
+        type,
       );
     }
 
@@ -255,7 +260,7 @@ export class RestaurantReservationsService {
         updatedReservation.userId.toString(),
         'Table Reassigned',
         `Your reservation has been reassigned to a different table. Reason: ${reason}`,
-        'reservation',
+        'info',
       );
     }
     
