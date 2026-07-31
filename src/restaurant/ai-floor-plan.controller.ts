@@ -84,7 +84,12 @@ export class AiFloorPlanController {
       return {
         success: true,
         floor: createdFloor,
-        message: 'Floor plan successfully generated from image.'
+        isMock: aiData.isMock || false,
+        message: aiData.isMock
+          ? (aiData.isQuotaError 
+              ? 'Gemini API Rate Limit / Quota Exceeded (429). Generated structured Coffee Shop blueprint layout.'
+              : 'Generated structured Coffee Shop blueprint layout (Note: Gemini API key missing or invalid in backend .env).')
+          : 'Floor plan successfully generated from image using AI Vision.'
       };
     } catch (error) {
       console.error('AI Generate Error:', error);
