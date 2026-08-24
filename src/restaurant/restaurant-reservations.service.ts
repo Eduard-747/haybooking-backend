@@ -104,7 +104,12 @@ export class RestaurantReservationsService {
     if (branchId) filter.branchId = branchId;
     else if (partnerId) filter.partnerId = partnerId;
 
-    return this.reservationModel.find(filter).populate('tableId').exec();
+    return this.reservationModel
+      .find(filter)
+      .populate('tableId')
+      .populate('userId', 'name surname firstName lastName email phoneNumber phone')
+      .populate('customerId', 'name surname firstName lastName email phoneNumber phone')
+      .exec();
   }
 
   async findByUser(

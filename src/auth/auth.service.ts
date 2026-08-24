@@ -187,18 +187,29 @@ export class AuthService {
     return { success: true, message: 'SMS verified' };
   }
 
-  async forgotPassword(phoneNumber: string) {
-    if (!phoneNumber) {
-      throw new BadRequestException('Phone number is required');
+  async forgotPassword(identifier: string) {
+    if (!identifier) {
+      throw new BadRequestException('Phone number or email is required');
     }
 
-    const user = await this.userModel.findOne({ phoneNumber });
-    // "Do not reveal whether a phone number exists in the system."
+    const cleanId = identifier.trim();
+    const isEmail = cleanId.includes('@');
+
+    const user = await this.userModel.findOne({
+      $or: [
+        { phoneNumber: cleanId },
+        { email: cleanId },
+        { email: cleanId.toLowerCase() },
+      ],
+    });
+
+    // Do not reveal whether a user exists in the system
     if (!user) {
       return {
         success: true,
-        message:
-          'If that phone number exists, a password reset code has been sent via SMS.',
+        message: isEmail
+          ? 'If that email exists, a password reset code has been sent.'
+          : 'If that phone number exists, a password reset code has been sent via SMS.',
       };
     }
 
@@ -213,25 +224,40 @@ export class AuthService {
     user.resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiry
     await user.save();
 
-    // Simulated SMS
-    console.log(`[SIMULATED SMS] Password reset requested for ${phoneNumber}`);
-    console.log(`[SIMULATED SMS] Your password reset code is: ${resetCode}`);
+    // Simulated Email / SMS notification
+    if (isEmail) {
+      console.log(`[SIMULATED EMAIL] Password reset requested for ${user.email}`);
+      console.log(`[SIMULATED EMAIL] Your password reset code is: ${resetCode}`);
+    } else {
+      console.log(
+        `[SIMULATED SMS] Password reset requested for ${user.phoneNumber}`,
+      );
+      console.log(`[SIMULATED SMS] Your password reset code is: ${resetCode}`);
+    }
 
     return {
       success: true,
-      message:
-        'If that phone number exists, a password reset code has been sent via SMS.',
+      message: isEmail
+        ? 'If that email exists, a password reset code has been sent.'
+        : 'If that phone number exists, a password reset code has been sent via SMS.',
     };
   }
 
-  async resetPassword(phoneNumber: string, code: string, newPassword: string) {
-    if (!phoneNumber || !code || !newPassword) {
+  async resetPassword(identifier: string, code: string, newPassword: string) {
+    if (!identifier || !code || !newPassword) {
       throw new BadRequestException(
-        'Phone number, code, and new password are required',
+        'Phone number or email, code, and new password are required',
       );
     }
 
-    const user = await this.userModel.findOne({ phoneNumber });
+    const cleanId = identifier.trim();
+    const user = await this.userModel.findOne({
+      $or: [
+        { phoneNumber: cleanId },
+        { email: cleanId },
+        { email: cleanId.toLowerCase() },
+      ],
+    });
     if (!user) {
       throw new BadRequestException('Invalid or expired password reset code');
     }

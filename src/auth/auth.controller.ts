@@ -49,15 +49,21 @@ export class AuthController {
 
   @UseGuards(ThrottlerGuard)
   @Post('forgot-password')
-  async forgotPassword(@Body() body: { phoneNumber: string }) {
-    return this.authService.forgotPassword(body.phoneNumber);
+  async forgotPassword(
+    @Body() body: { phoneNumber?: string; email?: string; identifier?: string },
+  ) {
+    const identifier =
+      body.identifier || body.email || body.phoneNumber || '';
+    return this.authService.forgotPassword(identifier);
   }
 
   @UseGuards(ThrottlerGuard)
   @Post('reset-password')
   async resetPassword(@Body() body: any) {
+    const identifier =
+      body.identifier || body.email || body.phoneNumber || '';
     return this.authService.resetPassword(
-      body.phoneNumber,
+      identifier,
       body.code,
       body.password,
     );
