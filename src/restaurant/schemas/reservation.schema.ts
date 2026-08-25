@@ -25,6 +25,9 @@ export class RestaurantReservation {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: false })
   userId?: User;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: false })
+  customerId?: User;
+
   @Prop({ required: false })
   guestName?: string;
 

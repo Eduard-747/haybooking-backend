@@ -62,10 +62,13 @@ export class RestaurantReservationsService {
     
     // Notify Partner
     if (data.partnerId) {
+      const formattedDateStr = data.date instanceof Date 
+        ? data.date.toISOString().split('T')[0] 
+        : String(data.date).split('T')[0];
       await this.notificationsService.create(
         data.partnerId,
         'New Booking Received',
-        `A new reservation request has been submitted for ${data.date}.`,
+        `A new reservation request has been submitted for ${formattedDateStr}.`,
         'booking_created',
       );
     }
@@ -88,28 +91,51 @@ export class RestaurantReservationsService {
     branchId?: string,
     partnerId?: string,
   ): Promise<RestaurantReservation[]> {
-    const queryDateStr = typeof date === 'string' 
-      ? (date.includes('T') ? date.split('T')[0] : date)
-      : new Date(date).toISOString().split('T')[0];
+    try {
+      const isValidObjectId = (id: any) => typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id);
+      
+      let startDate: Date;
+      let endDate: Date;
+      try {
+        const queryDateStr = typeof date === 'string' 
+          ? (date.includes('T') ? date.split('T')[0] : date)
+          : new Date(date).toISOString().split('T')[0];
 
-    const startDate = new Date(`${queryDateStr}T00:00:00.000Z`);
-    const endDate = new Date(`${queryDateStr}T23:59:59.999Z`);
-    
-    const filter: any = {
-      date: {
-        $gte: startDate,
-        $lt: endDate,
-      },
-    };
-    if (branchId) filter.branchId = branchId;
-    else if (partnerId) filter.partnerId = partnerId;
+        startDate = new Date(`${queryDateStr}T00:00:00.000Z`);
+        endDate = new Date(`${queryDateStr}T23:59:59.999Z`);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          throw new Error('Invalid date');
+        }
+      } catch {
+        const todayStr = new Date().toISOString().split('T')[0];
+        startDate = new Date(`${todayStr}T00:00:00.000Z`);
+        endDate = new Date(`${todayStr}T23:59:59.999Z`);
+      }
 
-    return this.reservationModel
-      .find(filter)
-      .populate('tableId')
-      .populate('userId', 'name surname firstName lastName email phoneNumber phone')
-      .populate('customerId', 'name surname firstName lastName email phoneNumber phone')
-      .exec();
+      const filter: any = {
+        date: {
+          $gte: startDate,
+          $lt: endDate,
+        },
+      };
+
+      if (isValidObjectId(branchId)) {
+        filter.branchId = branchId;
+      } else if (isValidObjectId(partnerId)) {
+        filter.partnerId = partnerId;
+      } else {
+        return [];
+      }
+
+      return await this.reservationModel
+        .find(filter)
+        .populate('tableId')
+        .populate('userId', 'name surname firstName lastName email phoneNumber phone')
+        .exec();
+    } catch (err) {
+      console.error('Error in RestaurantReservationsService.findAll:', err);
+      return [];
+    }
   }
 
   async findByUser(

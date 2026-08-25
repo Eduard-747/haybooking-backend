@@ -29,13 +29,14 @@ export class RestaurantTablesController {
     @Query('branchId') branchId: string,
     @Query('floorId') floorId: string,
   ) {
-    if (floorId) {
+    const isValidObjectId = (id: any) => typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id);
+    if (isValidObjectId(floorId)) {
       return this.tablesService.findAllByFloor(floorId);
     }
-    if (branchId) {
+    if (isValidObjectId(branchId)) {
       return this.tablesService.findAllByBranch(branchId);
     }
-    if (partnerId) {
+    if (isValidObjectId(partnerId)) {
       return this.tablesService.findAllByPartner(partnerId);
     }
     return [];
