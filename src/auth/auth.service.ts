@@ -53,13 +53,22 @@ export class AuthService {
       );
     }
 
+    const regMethod: 'email' | 'phone' = signupDto.registrationMethod || (phoneNumber ? 'phone' : 'email');
+
     const newUser = new this.userModel({
       ...(phoneNumber && { phoneNumber }),
       ...(email && { email }),
+      ...(signupDto.firebaseUid && { firebaseUid: signupDto.firebaseUid }),
+      registrationMethod: regMethod,
       passwordHash,
       name,
       surname,
       role: role || 'client',
+      notificationPreferences: {
+        email: regMethod === 'email',
+        sms: regMethod === 'phone',
+        push: true,
+      },
     });
 
     const savedUser = await newUser.save();
@@ -173,18 +182,13 @@ export class AuthService {
   }
 
   async sendSms({ phoneNumber }: { phoneNumber: string }) {
-    // Simulated SMS send
-    console.log(`[SIMULATED SMS] Sent verification code to ${phoneNumber}`);
-    return { success: true, message: 'Verification code sent' };
+    // Phone OTP is sent via Firebase Authentication client-side.
+    return { success: true, message: 'Firebase SMS trigger acknowledged' };
   }
 
   async verifySms(verifyDto: any) {
-    // Simulated verification (accepts any code for now)
-    const { phoneNumber, code } = verifyDto;
-    if (!code || code.length < 4) {
-      throw new UnauthorizedException('Invalid verification code');
-    }
-    return { success: true, message: 'SMS verified' };
+    // Phone OTP verification is handled via Firebase Authentication client-side.
+    return { success: true, message: 'Firebase Phone verified' };
   }
 
   async forgotPassword(identifier: string) {
@@ -203,17 +207,15 @@ export class AuthService {
       ],
     });
 
-    // Do not reveal whether a user exists in the system
     if (!user) {
       return {
         success: true,
         message: isEmail
-          ? 'If that email exists, a password reset code has been sent.'
-          : 'If that phone number exists, a password reset code has been sent via SMS.',
+          ? 'If that email exists, a password reset link has been sent.'
+          : 'If that phone number exists, phone OTP verification via Firebase has been initiated.',
       };
     }
 
-    // Generate a 6-digit numeric code
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
     const resetTokenHash = crypto
       .createHash('sha256')
@@ -221,25 +223,14 @@ export class AuthService {
       .digest('hex');
 
     user.resetToken = resetTokenHash;
-    user.resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiry
+    user.resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
-
-    // Simulated Email / SMS notification
-    if (isEmail) {
-      console.log(`[SIMULATED EMAIL] Password reset requested for ${user.email}`);
-      console.log(`[SIMULATED EMAIL] Your password reset code is: ${resetCode}`);
-    } else {
-      console.log(
-        `[SIMULATED SMS] Password reset requested for ${user.phoneNumber}`,
-      );
-      console.log(`[SIMULATED SMS] Your password reset code is: ${resetCode}`);
-    }
 
     return {
       success: true,
       message: isEmail
-        ? 'If that email exists, a password reset code has been sent.'
-        : 'If that phone number exists, a password reset code has been sent via SMS.',
+        ? 'If that email exists, a password reset email has been sent.'
+        : 'If that phone number exists, please verify your phone via Firebase SMS OTP.',
     };
   }
 

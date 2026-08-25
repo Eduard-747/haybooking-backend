@@ -96,4 +96,24 @@ export class NotificationsService {
       .updateMany({ userId, read: false } as any, { read: true })
       .exec();
   }
+
+  async sendReminderNotification(
+    user: any,
+    title: string,
+    message: string,
+  ): Promise<void> {
+    const regMethod = user.registrationMethod || (user.phoneNumber ? 'phone' : 'email');
+    const prefs = user.notificationPreferences || {};
+
+    if (regMethod === 'email' && prefs.email !== false) {
+      console.log(`[REMINDER EMAIL] Sent reminder email to ${user.email}: ${title} - ${message}`);
+    } else if (regMethod === 'phone' && prefs.sms !== false) {
+      console.log(`[REMINDER SMS] Sent reminder SMS to ${user.phoneNumber}: ${title} - ${message}`);
+    }
+
+    if (user._id || user.id) {
+      const uId = (user._id || user.id).toString();
+      await this.createForUser(uId, title, message, 'reminder');
+    }
+  }
 }

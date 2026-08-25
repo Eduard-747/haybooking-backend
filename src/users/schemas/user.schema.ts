@@ -38,6 +38,15 @@ export class User {
   @Prop({ required: false, unique: true, sparse: true })
   email: string;
 
+  @Prop({ required: false, unique: true, sparse: true })
+  firebaseUid?: string;
+
+  @Prop({ required: true, enum: ['email', 'phone'], default: 'email' })
+  registrationMethod: 'email' | 'phone';
+
+  @Prop({ default: false })
+  emailVerified?: boolean;
+
   @Prop({ required: false })
   googleId: string;
 
