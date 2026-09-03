@@ -26,9 +26,10 @@ export class SpecialistsController {
 
   @Get()
   async findByPartner(
-    @Query('partnerId') partnerId: string,
+    @Query('partnerId') partnerId?: string,
+    @Query('q') query?: string,
   ): Promise<Specialist[]> {
-    return this.specialistsService.findByPartner(partnerId);
+    return this.specialistsService.findByPartner(partnerId, query);
   }
 
   @Get(':id')

@@ -37,6 +37,16 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  @Post('send-email-otp')
+  async sendEmailOtp(@Body() body: { email: string }) {
+    return this.authService.sendEmailOtp(body);
+  }
+
+  @Post('verify-email-otp')
+  async verifyEmailOtp(@Body() body: { email: string; code: string }) {
+    return this.authService.verifyEmailOtp(body);
+  }
+
   @Post('send-sms')
   async sendSms(@Body() body: { phoneNumber: string }) {
     return this.authService.sendSms(body);

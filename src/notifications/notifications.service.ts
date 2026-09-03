@@ -44,7 +44,7 @@ export class NotificationsService {
       .findOneAndUpdate(
         { _id: id, partnerId } as any,
         { read: true },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }
@@ -86,7 +86,7 @@ export class NotificationsService {
       .findOneAndUpdate(
         { _id: id, userId } as any,
         { read: true },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
   }

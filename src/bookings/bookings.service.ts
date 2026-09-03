@@ -224,7 +224,7 @@ export class BookingsService {
 
   async updateStatus(id: string, status: string): Promise<Booking | null> {
     const updated = await this.bookingModel
-      .findByIdAndUpdate(id, { status }, { new: true })
+      .findByIdAndUpdate(id, { status }, { returnDocument: 'after' })
       .populate('userId', 'name surname')
       .exec();
 

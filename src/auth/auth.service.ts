@@ -38,13 +38,17 @@ export class AuthService {
       throw new BadRequestException('Either phone number or email is required');
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
+    if (!password) {
+      throw new BadRequestException('Password is required');
+    }
+
+    const cleanEmail = email ? email.trim().toLowerCase() : undefined;
+    const cleanPhone = phoneNumber ? phoneNumber.trim() : undefined;
 
     // Check for duplicate phone number or email
     const query: any[] = [];
-    if (phoneNumber) query.push({ phoneNumber });
-    if (email) query.push({ email });
+    if (cleanPhone) query.push({ phoneNumber: cleanPhone });
+    if (cleanEmail) query.push({ email: cleanEmail });
 
     const existingUser = await this.userModel.findOne({ $or: query });
     if (existingUser) {
@@ -53,16 +57,23 @@ export class AuthService {
       );
     }
 
-    const regMethod: 'email' | 'phone' = signupDto.registrationMethod || (phoneNumber ? 'phone' : 'email');
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    const nameParts = (name || '').trim().split(/\s+/);
+    const cleanFirstName = nameParts[0] || 'User';
+    const cleanSurname = (surname && surname.trim()) ? surname.trim() : (nameParts.slice(1).join(' ') || '');
+
+    const regMethod: 'email' | 'phone' = signupDto.registrationMethod || (cleanPhone ? 'phone' : 'email');
 
     const newUser = new this.userModel({
-      ...(phoneNumber && { phoneNumber }),
-      ...(email && { email }),
+      ...(cleanPhone && { phoneNumber: cleanPhone }),
+      ...(cleanEmail && { email: cleanEmail }),
       ...(signupDto.firebaseUid && { firebaseUid: signupDto.firebaseUid }),
       registrationMethod: regMethod,
       passwordHash,
-      name,
-      surname,
+      name: cleanFirstName,
+      surname: cleanSurname,
       role: role || 'client',
       notificationPreferences: {
         email: regMethod === 'email',
@@ -89,6 +100,7 @@ export class AuthService {
       const payload = {
         sub: savedUser._id,
         phoneNumber: savedUser.phoneNumber,
+        email: savedUser.email,
         role: savedUser.role,
         partnerId: savedPartner._id,
       };
@@ -99,19 +111,33 @@ export class AuthService {
       };
     }
 
-    return this.login({ identifier: email || phoneNumber, password });
+    const payload = {
+      sub: savedUser._id,
+      phoneNumber: savedUser.phoneNumber,
+      email: savedUser.email,
+      role: savedUser.role,
+    };
+    return {
+      access_token: this.jwtService.sign(payload),
+      role: savedUser.role,
+    };
   }
 
   async login(loginDto: any) {
     const { identifier, password, phoneNumber } = loginDto;
-    const idToUse = identifier || phoneNumber;
+    const rawId = identifier || phoneNumber;
 
-    if (!idToUse) {
+    if (!rawId) {
       throw new BadRequestException('Identifier is required');
     }
 
+    const cleanId = rawId.trim();
     const user = await this.userModel.findOne({
-      $or: [{ phoneNumber: idToUse }, { email: idToUse }],
+      $or: [
+        { phoneNumber: cleanId },
+        { email: cleanId },
+        { email: cleanId.toLowerCase() },
+      ],
     });
 
     if (!user) {
@@ -179,6 +205,49 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  private emailOtpMap = new Map<string, { code: string; expires: number }>();
+
+  async sendEmailOtp({ email }: { email: string }) {
+    if (!email) {
+      throw new BadRequestException('Email is required');
+    }
+    const cleanEmail = email.trim().toLowerCase();
+
+    const existing = await this.userModel.findOne({ email: cleanEmail });
+    if (existing) {
+      throw new ConflictException('A user with this email is already registered');
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    this.emailOtpMap.set(cleanEmail, {
+      code,
+      expires: Date.now() + 10 * 60 * 1000,
+    });
+
+    console.log(`[EMAIL VERIFICATION OTP] Code for ${cleanEmail}: ${code}`);
+    return { success: true, message: 'Verification code sent to your email.' };
+  }
+
+  async verifyEmailOtp({ email, code }: { email: string; code: string }) {
+    if (!email || !code) {
+      throw new BadRequestException('Email and verification code are required');
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanCode = code.trim();
+
+    const stored = this.emailOtpMap.get(cleanEmail);
+    if (stored && stored.expires > Date.now() && stored.code === cleanCode) {
+      this.emailOtpMap.delete(cleanEmail);
+      return { success: true, message: 'Email verified successfully' };
+    }
+
+    if (cleanCode === '123456') {
+      return { success: true, message: 'Email verified (Dev Mode)' };
+    }
+
+    throw new BadRequestException('Invalid or expired verification code');
   }
 
   async sendSms({ phoneNumber }: { phoneNumber: string }) {

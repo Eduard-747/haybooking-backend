@@ -50,7 +50,7 @@ export class UsersController {
       ...safeData
     } = updateData;
     return this.userModel
-      .findByIdAndUpdate(req.user.userId, safeData, { new: true })
+      .findByIdAndUpdate(req.user.userId, safeData, { returnDocument: 'after' })
       .select('-passwordHash')
       .exec();
   }

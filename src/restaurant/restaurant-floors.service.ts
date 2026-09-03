@@ -31,7 +31,7 @@ export class RestaurantFloorsService {
 
   async update(id: string, data: any): Promise<Floor> {
     const updatedFloor = await this.floorModel
-      .findByIdAndUpdate(id, data, { new: true })
+      .findByIdAndUpdate(id, data, { returnDocument: 'after' })
       .exec();
     if (!updatedFloor) {
       throw new NotFoundException(`Floor #${id} not found`);

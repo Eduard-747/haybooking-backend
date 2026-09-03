@@ -36,7 +36,7 @@ export class RestaurantTablesService {
 
   async update(id: string, data: any): Promise<Table> {
     const updatedTable = await this.tableModel
-      .findByIdAndUpdate(id, data, { new: true })
+      .findByIdAndUpdate(id, data, { returnDocument: 'after' })
       .exec();
     if (!updatedTable) {
       throw new NotFoundException(`Table #${id} not found`);

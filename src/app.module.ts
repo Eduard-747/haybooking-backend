@@ -12,6 +12,7 @@ import { BookingsModule } from './bookings/bookings.module';
 import { AuthModule } from './auth/auth.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
+import { SearchModule } from './search/search.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
@@ -35,6 +36,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     AuthModule,
     NotificationsModule,
     RestaurantModule,
+    SearchModule,
     ThrottlerModule.forRoot([
       {
         ttl: 60000,

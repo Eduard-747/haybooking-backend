@@ -29,10 +29,10 @@ export class User {
   @Prop({ required: false })
   passwordHash: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false, default: '' })
   name: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false, default: '' })
   surname: string;
 
   @Prop({ required: false, unique: true, sparse: true })

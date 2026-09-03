@@ -24,15 +24,16 @@ export class RestaurantMenuController {
   findAll(
     @Query('partnerId') partnerId?: string,
     @Query('branchId') branchId?: string,
+    @Query('q') query?: string,
   ) {
     if (partnerId && branchId) {
-      return this.menuService.findAllForBranchAndPartner(partnerId, branchId);
+      return this.menuService.findAllForBranchAndPartner(partnerId, branchId, query);
     }
     if (branchId) {
-      return this.menuService.findAllByBranch(branchId);
+      return this.menuService.findAllByBranch(branchId, query);
     }
     if (partnerId) {
-      return this.menuService.findAllByPartner(partnerId);
+      return this.menuService.findAllByPartner(partnerId, query);
     }
     return [];
   }

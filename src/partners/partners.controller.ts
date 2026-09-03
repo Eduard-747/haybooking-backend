@@ -4,6 +4,7 @@ import {
   Put,
   Param,
   Body,
+  Query,
   UseGuards,
   Req,
   UnauthorizedException,
@@ -33,8 +34,18 @@ export class PartnersController {
   }
 
   @Get()
-  async findAll(): Promise<Partner[]> {
-    return this.partnersService.findAll();
+  async findAll(
+    @Query('q') query?: string,
+    @Query('category') category?: string,
+    @Query('limit') limit?: string,
+    @Query('page') page?: string,
+  ): Promise<Partner[]> {
+    return this.partnersService.findAll({
+      query,
+      category,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      page: page ? parseInt(page, 10) : undefined,
+    });
   }
 
   @UseGuards(JwtAuthGuard)

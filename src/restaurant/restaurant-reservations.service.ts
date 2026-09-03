@@ -179,7 +179,7 @@ export class RestaurantReservationsService {
 
   async update(id: string, data: any): Promise<RestaurantReservation> {
     const updatedReservation = await this.reservationModel
-      .findByIdAndUpdate(id, data, { new: true })
+      .findByIdAndUpdate(id, data, { returnDocument: 'after' })
       .populate('tableId')
       .exec();
     if (!updatedReservation) {
@@ -193,7 +193,7 @@ export class RestaurantReservationsService {
     status: string,
   ): Promise<RestaurantReservation> {
     const updatedReservation = await this.reservationModel
-      .findByIdAndUpdate(id, { status }, { new: true })
+      .findByIdAndUpdate(id, { status }, { returnDocument: 'after' })
       .populate('tableId')
       .exec();
     if (!updatedReservation) {
@@ -278,7 +278,7 @@ export class RestaurantReservationsService {
     }
     
     const updatedReservation = await this.reservationModel
-      .findByIdAndUpdate(id, { tableId: newTableId, reassignReason: reason }, { new: true })
+      .findByIdAndUpdate(id, { tableId: newTableId, reassignReason: reason }, { returnDocument: 'after' })
       .populate('tableId')
       .exec();
       

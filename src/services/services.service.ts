@@ -3,6 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Service, ServiceDocument } from './schemas/service.schema';
 import { CreateServiceDto } from './dto/create-service.dto';
+import {
+  generateQueryVariants,
+  escapeRegex,
+} from '../common/utils/search-transliteration.util';
 
 @Injectable()
 export class ServicesService {
@@ -15,12 +19,43 @@ export class ServicesService {
     return createdService.save();
   }
 
-  async findAll(): Promise<Service[]> {
-    return this.serviceModel.find().exec();
+  async findAll(query?: string, category?: string): Promise<Service[]> {
+    const filter: any = {};
+    if (category && category !== 'All') {
+      filter.category = { $regex: new RegExp(`^${escapeRegex(category)}$`, 'i') };
+    }
+    if (query && query.trim()) {
+      const { variants } = generateQueryVariants(query);
+      if (variants.length > 0) {
+        filter.$or = variants.flatMap((v) => {
+          const escaped = escapeRegex(v);
+          return [
+            { name: { $regex: escaped, $options: 'i' } },
+            { category: { $regex: escaped, $options: 'i' } },
+            { description: { $regex: escaped, $options: 'i' } },
+          ];
+        });
+      }
+    }
+    return this.serviceModel.find(filter).exec();
   }
 
-  async findByPartner(partnerId: string): Promise<Service[]> {
-    return this.serviceModel.find({ partnerId } as any).exec();
+  async findByPartner(partnerId: string, query?: string): Promise<Service[]> {
+    const filter: any = { partnerId };
+    if (query && query.trim()) {
+      const { variants } = generateQueryVariants(query);
+      if (variants.length > 0) {
+        filter.$or = variants.flatMap((v) => {
+          const escaped = escapeRegex(v);
+          return [
+            { name: { $regex: escaped, $options: 'i' } },
+            { category: { $regex: escaped, $options: 'i' } },
+            { description: { $regex: escaped, $options: 'i' } },
+          ];
+        });
+      }
+    }
+    return this.serviceModel.find(filter).exec();
   }
 
   async findOne(id: string): Promise<Service | null> {
@@ -32,7 +67,7 @@ export class ServicesService {
     updateData: Partial<CreateServiceDto>,
   ): Promise<Service | null> {
     return this.serviceModel
-      .findByIdAndUpdate(id, updateData, { new: true })
+      .findByIdAndUpdate(id, updateData, { returnDocument: 'after' })
       .exec();
   }
 

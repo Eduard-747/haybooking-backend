@@ -25,11 +25,15 @@ export class ServicesController {
   }
 
   @Get()
-  async findAll(@Query('partnerId') partnerId?: string): Promise<Service[]> {
+  async findAll(
+    @Query('partnerId') partnerId?: string,
+    @Query('q') query?: string,
+    @Query('category') category?: string,
+  ): Promise<Service[]> {
     if (partnerId) {
-      return this.servicesService.findByPartner(partnerId);
+      return this.servicesService.findByPartner(partnerId, query);
     }
-    return this.servicesService.findAll();
+    return this.servicesService.findAll(query, category);
   }
 
   @Get(':id')

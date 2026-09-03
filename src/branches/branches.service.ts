@@ -30,7 +30,7 @@ export class BranchesService {
   }
 
   async update(id: string, data: any): Promise<Branch | null> {
-    return this.branchModel.findByIdAndUpdate(id, data, { new: true }).exec();
+    return this.branchModel.findByIdAndUpdate(id, data, { returnDocument: 'after' }).exec();
   }
 
   async remove(id: string): Promise<Branch | null> {
